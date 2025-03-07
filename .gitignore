@@ -36,3 +36,12 @@ Thumbs.db
 .terraform/
 infrastructure/.terraform/
 .terraform.lock.hcl
+infrastructure/.terraform.lock.hcl
+
+# Ignore Node.js dependencies
+node_modules/
+npm-debug.log
+yarn-error.log
+
+package-lock.json
+infrastructure/package-lock.json
