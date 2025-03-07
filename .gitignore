@@ -33,4 +33,4 @@ Thumbs.db
 *.tmp
 
 #Terraform provider files
-infrastructure/.terraform/*
+infrastructure/.terraform/
