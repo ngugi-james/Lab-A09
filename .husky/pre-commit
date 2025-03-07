@@ -1,0 +1,10 @@
+cd infrastructure
+echo "Running Terraform pre-commit checks..."
+echo "Running Terraform format check"
+terraform fmt -check -recursive
+
+echo "Running Terraform validate check"
+terraform validate
+
+echo "Running tflint"
+tflint
