@@ -1,4 +1,4 @@
-cd terraform
+cd infrastructure
 echo "Running Terraform pre-commit checks..."
 echo "Running Terraform format check"
 terraform fmt -check -recursive
