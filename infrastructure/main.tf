@@ -8,10 +8,6 @@ terraform {
       source  = "hashicorp/azurerm"
       version = "~> 3.0.2"
     }
-    cloudinit = {
-      source  = "hashicorp/cloudinit"
-      version = "2.3.3"
-    }
   }
 }
 
@@ -55,5 +51,5 @@ resource "azurerm_virtual_network" "vnet" {
   name                = var.vnet_name
   location            = azurerm_resource_group.rg.location
   resource_group_name = azurerm_resource_group.rg.name
-  
+  address_space       = var.address_space
 }
