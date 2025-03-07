@@ -31,3 +31,6 @@ Thumbs.db
 *.log
 *.bak
 *.tmp
+
+#Terraform provider files
+infrastructure/.terraform/
