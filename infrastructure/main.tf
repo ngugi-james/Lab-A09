@@ -36,8 +36,8 @@ variable "vnet_name" {
 
 variable "address_space" {
   description = "Address space for the Virtual Network"
-  type= list(string)
-  default= ["10.0.0.0/16"]
+  type        = list(string)
+  default     = ["10.0.0.0/16"]
 }
 
 # Resource Group
@@ -51,5 +51,5 @@ resource "azurerm_virtual_network" "vnet" {
   name                = var.vnet_name
   location            = azurerm_resource_group.rg.location
   resource_group_name = azurerm_resource_group.rg.name
-
+  address_space       = var.address_space
 }
