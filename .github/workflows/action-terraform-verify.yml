@@ -1,4 +1,4 @@
-name: Validate Terraform fmt
+name: Validate Terraform Code
 on:
   pull_request:
     branches:
@@ -28,7 +28,7 @@ jobs:
         uses: hashicorp/setup-terraform@v2
         with:
           terraform_version: 1.2.4
-      - name: Validate terraform fmt (added_modified)
+      - name: Validate Terraform fmt (added_modified)
         run: |
           set +e
           echo "CHECK_STATUS=0" >> $GITHUB_ENV
@@ -36,7 +36,7 @@ jobs:
             echo "Checking terraform fmt on ${changed_file}..."
             if [[ $changed_file == *.tf ]]; then
               terraform fmt -check $changed_file
-              FMT_STATUS=$(echo $?)
+              FMT_STATUS=$?
               if [[ $FMT_STATUS -ne 0 ]]; then
                 echo "❌ terraform fmt failed - ${changed_file}" >> $GITHUB_STEP_SUMMARY
                 echo "CHECK_STATUS=1" >> $GITHUB_ENV
@@ -44,5 +44,35 @@ jobs:
             fi
           done
       - name: Process fmt check
+        if: always()
+        run: exit $CHECK_STATUS
+
+  terraform_validate:
+    runs-on: ubuntu-latest
+    name: Terraform validate check
+    needs: terraform_fmt
+    outputs:
+      CHECK_STATUS: "${{ env.CHECK_STATUS }}"
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 2
+      - name: Fetch changed files
+        id: pr_files
+        uses: jitterbit/get-changed-files@v1
+        with:
+          format: "space-delimited"
+      - name: Configure Terraform
+        uses: hashicorp/setup-terraform@v2
+        with:
+          terraform_version: 1.2.4
+      - name: Initialize Terraform
+        run: terraform init
+      - name: Validate Terraform syntax
+        run: |
+          set +e
+          echo "CHECK_STATUS=0" >> $GITHUB_ENV
+          terraform validate || echo "CHECK_STATUS=1" >> $GITHUB_ENV
+      - name: Process validate check
         if: always()
         run: exit $CHECK_STATUS
