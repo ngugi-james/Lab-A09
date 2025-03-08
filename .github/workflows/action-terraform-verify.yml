@@ -14,7 +14,7 @@ jobs:
     runs-on: ubuntu-latest
     name: Terraform fmt check
     outputs:
-      CHECK_STATUS: "${{ env.CHECK_STATUS }}"
+      CHECK_STATUS: "${{ steps.set_status.outputs.CHECK_STATUS }}"
     steps:
       - uses: actions/checkout@v3
         with:
@@ -29,30 +29,34 @@ jobs:
         with:
           terraform_version: 1.2.4
       - name: Validate Terraform fmt (added_modified)
+        id: fmt_check
         run: |
-          set +e
-          echo "CHECK_STATUS=0" >> $GITHUB_ENV
+          CHECK_STATUS=0
+          echo "Changed files: ${{ steps.pr_files.outputs.added_modified }}"
           for changed_file in ${{ steps.pr_files.outputs.added_modified }}; do
             echo "Checking terraform fmt on ${changed_file}..."
             if [[ $changed_file == *.tf ]]; then
               terraform fmt -check $changed_file
-              FMT_STATUS=$?
-              if [[ $FMT_STATUS -ne 0 ]]; then
+              if [[ $? -ne 0 ]]; then
                 echo "❌ terraform fmt failed - ${changed_file}" >> $GITHUB_STEP_SUMMARY
-                echo "CHECK_STATUS=1" >> $GITHUB_ENV
+                CHECK_STATUS=1
               fi
             fi
           done
+          echo "CHECK_STATUS=$CHECK_STATUS" >> $GITHUB_OUTPUT
+      - name: Set CHECK_STATUS output
+        id: set_status
+        run: echo "CHECK_STATUS=${{ steps.fmt_check.outputs.CHECK_STATUS }}" >> $GITHUB_OUTPUT
       - name: Process fmt check
         if: always()
-        run: exit $CHECK_STATUS
+        run: exit ${{ steps.set_status.outputs.CHECK_STATUS }}
 
   terraform_validate:
     runs-on: ubuntu-latest
     name: Terraform validate check
     needs: terraform_fmt
     outputs:
-      CHECK_STATUS: "${{ env.CHECK_STATUS }}"
+      CHECK_STATUS: "${{ steps.set_status.outputs.CHECK_STATUS }}"
     steps:
       - uses: actions/checkout@v3
         with:
@@ -69,10 +73,14 @@ jobs:
       - name: Initialize Terraform
         run: terraform init
       - name: Validate Terraform syntax
+        id: validate_check
         run: |
-          set +e
-          echo "CHECK_STATUS=0" >> $GITHUB_ENV
-          terraform validate || echo "CHECK_STATUS=1" >> $GITHUB_ENV
+          CHECK_STATUS=0
+          terraform validate || CHECK_STATUS=1
+          echo "CHECK_STATUS=$CHECK_STATUS" >> $GITHUB_OUTPUT
+      - name: Set CHECK_STATUS output
+        id: set_status
+        run: echo "CHECK_STATUS=${{ steps.validate_check.outputs.CHECK_STATUS }}" >> $GITHUB_OUTPUT
       - name: Process validate check
         if: always()
-        run: exit $CHECK_STATUS
+        run: exit ${{ steps.set_status.outputs.CHECK_STATUS }}
